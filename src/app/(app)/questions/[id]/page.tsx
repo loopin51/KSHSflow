@@ -8,8 +8,8 @@ import { Answer } from '@/components/answers/answer';
 import { AnswerForm } from '@/components/answers/answer-form';
 import { ContentDisplay } from '@/components/shared/content-display';
 
-export default function QuestionDetailPage({ params }: { params: { id: string } }) {
-  const question = getQuestionById(params.id);
+export default async function QuestionDetailPage({ params }: { params: { id: string } }) {
+  const question = await getQuestionById(params.id);
 
   if (!question) {
     notFound();

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getQuestions } from '@/lib/mock-data';
+import type { Question, Answer } from '@/lib/mock-data';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -19,16 +20,42 @@ export default function ProfilePage() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
+  const [userQuestions, setUserQuestions] = useState<Question[]>([]);
+  const [userAnswers, setUserAnswers] = useState<Answer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (user === null) {
       router.push('/login');
-    } else {
-      setName(user.name);
+      return;
     }
+    
+    setName(user.name);
+    
+    const fetchUserContributions = async () => {
+      setIsLoading(true);
+      const allQuestions = await getQuestions();
+      const uQuestions = allQuestions.filter(q => q.author.id === user.id);
+      
+      // Need to get answers for all questions to find user's answers
+      const allAnswers: Answer[] = [];
+      for (const q of allQuestions) {
+          if (q.answers) {
+            allAnswers.push(...q.answers);
+          }
+      }
+      const uAnswers = allAnswers.filter(a => a.author.id === user.id);
+
+      setUserQuestions(uQuestions);
+      setUserAnswers(uAnswers);
+      setIsLoading(false);
+    };
+
+    fetchUserContributions();
+
   }, [user, router]);
 
-  if (!user) {
+  if (!user || isLoading) {
     return (
         <div className="flex justify-center items-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -54,8 +81,6 @@ export default function ProfilePage() {
   };
 
   const getInitials = (nameStr: string) => nameStr.split(' ').map(n => n[0]).join('');
-  const userQuestions = getQuestions().filter(q => q.author.id === user.id);
-  const userAnswers = getQuestions().flatMap(q => q.answers).filter(a => a.author.id === user.id);
 
   return (
     <div className="container mx-auto p-4 md:p-6">

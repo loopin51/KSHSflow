@@ -1,3 +1,7 @@
+import { db } from './firebase';
+import { collection, getDocs, doc, getDoc, query, orderBy, Timestamp } from 'firebase/firestore';
+import { formatDistanceToNow } from 'date-fns';
+
 export type User = {
   id: string;
   name: string;
@@ -28,77 +32,67 @@ export type Question = {
   answers: Answer[];
 };
 
+// Keep mock users for the simple auth system until full Firebase Auth is implemented
 export const users: User[] = [
   { id: 'user-1', name: 'Alice', avatarUrl: 'https://placehold.co/100x100.png' },
   { id: 'user-2', name: 'Bob', avatarUrl: 'https://placehold.co/100x100.png' },
   { id: 'user-3', name: 'Charlie', avatarUrl: 'https://placehold.co/100x100.png' },
 ];
 
-const questions: Question[] = [
-  {
-    id: 'q-1',
-    title: 'What are the best study spots on campus?',
-    body: 'I\'m looking for a quiet place with good Wi-Fi to study for my finals. Any recommendations? I heard the library is good, but is it too crowded? Maybe some hidden gems? Thanks @Alice!',
-    author: users[0],
-    tags: ['study', 'daily life'],
-    votes: 15,
-    answersCount: 2,
-    views: 120,
-    createdAt: '2 days ago',
-    answers: [
-      {
-        id: 'a-1-1',
-        body: 'The third floor of the main library is usually very quiet. Also, the coffee shop near the science building is great if you don\'t mind a little background noise.',
-        author: users[1],
-        votes: 5,
-        createdAt: '1 day ago',
-        isAccepted: true,
-      },
-      {
-        id: 'a-1-2',
-        body: 'I second the coffee shop idea! Great coffee and you can book small rooms for group study.',
-        author: users[2],
-        votes: 2,
-        createdAt: '22 hours ago',
-        isAccepted: false,
-      },
-    ],
-  },
-  {
-    id: 'q-2',
-    title: 'How does a blockchain work? Simplified explanation needed.',
-    body: 'I\'m trying to understand the basics of blockchain for my computer science class. Can someone explain it in simple terms? I\'m particularly confused about the "chain" part. Thanks for the help from @Bob or anyone else who knows about this!',
-    author: users[2],
-    tags: ['technology', 'science'],
-    votes: 42,
-    answersCount: 1,
-    views: 540,
-    createdAt: '5 days ago',
-    answers: [
-      {
-        id: 'a-2-1',
-        body: 'Imagine a digital notebook that is shared among many people. Each page (block) contains a list of transactions. Once a page is full, it\'s added to the notebook (chain) and linked to the previous page with a cryptographic seal. This makes it tamper-proof. That\'s the basic idea!',
-        author: users[0],
-        votes: 25,
-        createdAt: '4 days ago',
-        isAccepted: true,
-      },
-    ],
-  },
-  {
-    id: 'q-3',
-    title: 'Internship opportunities for a first-year student?',
-    body: 'Are there any companies that offer internships to first-year students? Most seem to require at least junior standing. Any advice on how to get an internship early would be appreciated!',
-    author: users[1],
-    tags: ['career'],
-    votes: 8,
-    answersCount: 0,
-    views: 95,
-    createdAt: '1 hour ago',
-    answers: [],
-  },
-];
+const docToQuestion = (doc: any): Question => {
+  const data = doc.data();
+  const createdAt = data.createdAt instanceof Timestamp 
+    ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true }) 
+    : 'some time ago';
+  
+  return {
+    id: doc.id,
+    ...data,
+    createdAt,
+    answers: [], // Answers are loaded separately in getQuestionById
+  } as Question;
+};
 
-export const getQuestions = (): Question[] => questions;
+export const getQuestions = async (): Promise<Question[]> => {
+  try {
+    const questionsCol = collection(db, 'questions');
+    const q = query(questionsCol, orderBy('createdAt', 'desc'));
+    const questionSnapshot = await getDocs(q);
+    const questionList = questionSnapshot.docs.map(doc => docToQuestion(doc));
+    return questionList;
+  } catch (error) {
+    console.error("Error fetching questions:", error);
+    // In case of error (e.g., emulators not running), return empty array
+    return [];
+  }
+};
 
-export const getQuestionById = (id: string): Question | undefined => questions.find(q => q.id === id);
+export const getQuestionById = async (id: string): Promise<Question | undefined> => {
+  try {
+    const questionDocRef = doc(db, 'questions', id);
+    const questionSnap = await getDoc(questionDocRef);
+
+    if (!questionSnap.exists()) {
+      return undefined;
+    }
+
+    const question = docToQuestion(questionSnap);
+
+    const answersCol = collection(questionDocRef, 'answers');
+    const answersQuery = query(answersCol, orderBy('createdAt', 'desc'));
+    const answersSnapshot = await getDocs(answersQuery);
+
+    question.answers = answersSnapshot.docs.map(doc => {
+      const data = doc.data();
+      const createdAt = data.createdAt instanceof Timestamp 
+        ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true })
+        : 'some time ago';
+      return { id: doc.id, ...data, createdAt } as Answer;
+    });
+
+    return question;
+  } catch (error) {
+    console.error(`Error fetching question ${id}:`, error);
+    return undefined;
+  }
+};
