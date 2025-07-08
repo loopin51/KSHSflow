@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { createQuestion } from '@/actions/question';
 import { recommendUsers } from '@/ai/flows/recommend-users';
+import { suggestTags } from '@/ai/flows/suggest-tags';
 import { debounce } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
@@ -35,6 +36,9 @@ export function AskQuestionForm() {
   
   const [recommendedUsers, setRecommendedUsers] = useState<string[]>([]);
   const [isRecommendingUsers, setIsRecommendingUsers] = useState(false);
+
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [isSuggestingTags, setIsSuggestingTags] = useState(false);
 
   const form = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
@@ -86,6 +90,32 @@ export function AskQuestionForm() {
       form.setValue('body', newBody, { shouldValidate: true });
     }
   }
+
+  const handleSuggestTags = async () => {
+    const { title, body } = form.getValues();
+    if (!title && !body) {
+      toast({ title: '제목과 본문을 먼저 입력해주세요.', variant: 'destructive' });
+      return;
+    }
+    setIsSuggestingTags(true);
+    try {
+      const result = await suggestTags({ question: `${title}\n\n${body}` });
+      setSuggestedTags(result.tags);
+    } catch (error) {
+      toast({ title: '태그를 추천할 수 없습니다.', variant: 'destructive' });
+    } finally {
+      setIsSuggestingTags(false);
+    }
+  };
+
+  const addTag = (tag: string) => {
+    const currentTags = form.getValues('tags').trim();
+    const tagsArray = currentTags ? currentTags.split(' ').filter(Boolean) : [];
+    if (!tagsArray.includes(tag)) {
+      form.setValue('tags', [...tagsArray, tag].join(' '), { shouldValidate: true });
+    }
+  };
+
 
   function onSubmit(values: z.infer<typeof questionSchema>) {
     if (!user) {
@@ -211,7 +241,7 @@ export function AskQuestionForm() {
         <Card>
           <CardHeader>
             <CardTitle>태그</CardTitle>
-            <CardDescription>질문에 대해 설명하는 태그를 최대 5개까지 추가하세요. 태그는 공백으로 구분합니다.</CardDescription>
+            <CardDescription>질문에 대해 설명하는 태그를 최대 5개까지 추가하세요. 태그는 공백으로 구분합니다. AI 추천을 받아보세요.</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
@@ -226,7 +256,23 @@ export function AskQuestionForm() {
                 </FormItem>
               )}
             />
+            {isSuggestingTags ? <Loader2 className="h-5 w-5 animate-spin mt-4"/> : suggestedTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                    <FormLabel className="w-full text-sm">추천 태그:</FormLabel>
+                    {suggestedTags.map((tag) => (
+                       <Button key={tag} type="button" size="sm" variant="outline" onClick={() => addTag(tag)}>
+                           {tag}
+                       </Button>
+                    ))}
+                </div>
+            )}
           </CardContent>
+          <CardFooter>
+             <Button type="button" variant="outline" onClick={handleSuggestTags} disabled={isSuggestingTags}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI 태그 추천
+            </Button>
+          </CardFooter>
         </Card>
 
         <Button type="submit" disabled={isPending}>
