@@ -11,13 +11,13 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestTagsInputSchema = z.object({
-  question: z.string().describe('The question content to suggest tags for.'),
+  question: z.string().describe('The question title and body to suggest tags for.'),
 });
 
 export type SuggestTagsInput = z.infer<typeof SuggestTagsInputSchema>;
 
 const SuggestTagsOutputSchema = z.object({
-  tags: z.array(z.string()).describe('An array of suggested tags for the question.'),
+  tags: z.array(z.string()).describe('An array of 1-5 suggested tags for the question. Tags should be lowercase and single words.'),
 });
 
 export type SuggestTagsOutput = z.infer<typeof SuggestTagsOutputSchema>;
@@ -30,7 +30,7 @@ const prompt = ai.definePrompt({
   name: 'suggestTagsPrompt',
   input: {schema: SuggestTagsInputSchema},
   output: {schema: SuggestTagsOutputSchema},
-  prompt: `Suggest relevant tags for the following question.  Return a list of tags that can help categorize it effectively:
+  prompt: `Suggest 1 to 5 relevant tags for the following question. Tags should be lowercase, single words.
 
 Question: {{{question}}}
 

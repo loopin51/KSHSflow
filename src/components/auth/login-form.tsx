@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { useState } from 'react';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -19,6 +20,7 @@ export function LoginForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -28,14 +30,17 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof loginSchema>) {
-    const loggedIn = login(values.email);
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
+    setIsLoading(true);
+    const loggedIn = await login(values.email);
+    setIsLoading(false);
+    
     if (loggedIn) {
       toast({ title: 'Login Successful', description: 'Welcome back!' });
       router.push('/');
       router.refresh();
     } else {
-      toast({ title: 'Login Failed', description: 'Could not log you in.', variant: 'destructive' });
+      toast({ title: 'Login Failed', description: 'Invalid email or password.', variant: 'destructive' });
     }
   }
 
@@ -68,7 +73,9 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Login</Button>
+        <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
+        </Button>
       </form>
     </Form>
   );

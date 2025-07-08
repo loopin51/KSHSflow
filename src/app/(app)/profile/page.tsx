@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { getQuestions } from '@/lib/mock-data';
 import type { Question, Answer } from '@/lib/mock-data';
 import { Loader2 } from 'lucide-react';
@@ -14,48 +15,51 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, isLoading: isAuthLoading, logout, updateUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.name || '');
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
   const [userQuestions, setUserQuestions] = useState<Question[]>([]);
   const [userAnswers, setUserAnswers] = useState<Answer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isContributionsLoading, setIsContributionsLoading] = useState(true);
 
   useEffect(() => {
-    if (user === null) {
+    if (!isAuthLoading && !user) {
       router.push('/login');
-      return;
     }
-    
-    setName(user.name);
-    
-    const fetchUserContributions = async () => {
-      setIsLoading(true);
-      const allQuestions = await getQuestions();
-      const uQuestions = allQuestions.filter(q => q.author.id === user.id);
+  }, [user, isAuthLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setBio(user.bio || '');
       
-      // Need to get answers for all questions to find user's answers
-      const allAnswers: Answer[] = [];
-      for (const q of allQuestions) {
-          if (q.answers) {
-            allAnswers.push(...q.answers);
-          }
-      }
-      const uAnswers = allAnswers.filter(a => a.author.id === user.id);
+      const fetchUserContributions = async () => {
+        setIsContributionsLoading(true);
+        const allQuestions = await getQuestions();
+        const uQuestions = allQuestions.filter(q => q.author.id === user.id);
+        
+        const allAnswers: Answer[] = [];
+        for (const q of allQuestions) {
+            if (q.answers) {
+              allAnswers.push(...q.answers);
+            }
+        }
+        const uAnswers = allAnswers.filter(a => a.author.id === user.id);
 
-      setUserQuestions(uQuestions);
-      setUserAnswers(uAnswers);
-      setIsLoading(false);
-    };
+        setUserQuestions(uQuestions);
+        setUserAnswers(uAnswers);
+        setIsContributionsLoading(false);
+      };
 
-    fetchUserContributions();
+      fetchUserContributions();
+    }
+  }, [user]);
 
-  }, [user, router]);
-
-  if (!user || isLoading) {
+  if (isAuthLoading || !user) {
     return (
         <div className="flex justify-center items-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -63,9 +67,9 @@ export default function ProfilePage() {
     );
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (name.trim()) {
-      updateUser({ name });
+      await updateUser({ name, bio });
       setIsEditing(false);
       toast({
         title: 'Profile Updated',
@@ -80,7 +84,7 @@ export default function ProfilePage() {
     }
   };
 
-  const getInitials = (nameStr: string) => nameStr.split(' ').map(n => n[0]).join('');
+  const getInitials = (nameStr: string) => (nameStr || '').split(' ').map(n => n[0]).join('');
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -115,6 +119,20 @@ export default function ProfilePage() {
             </div>
         </CardHeader>
         <CardContent>
+            <div className="mt-4">
+                <h3 className="text-xl font-bold mb-2">About</h3>
+                 {isEditing ? (
+                    <Textarea 
+                        value={bio} 
+                        onChange={(e) => setBio(e.target.value)} 
+                        placeholder="Tell us a little about yourself..."
+                        className="min-h-[100px]"
+                    />
+                ) : (
+                    <p className="text-muted-foreground whitespace-pre-wrap">{bio || 'No bio yet.'}</p>
+                )}
+            </div>
+
             <div className="mt-6">
                 <h3 className="text-xl font-bold mb-2">Stats</h3>
                 <div className="grid grid-cols-2 gap-4 text-center">
@@ -130,7 +148,7 @@ export default function ProfilePage() {
             </div>
              <div className="mt-6">
                 <h3 className="text-xl font-bold mb-4">Questions Asked</h3>
-                {userQuestions.length > 0 ? (
+                {isContributionsLoading ? <Loader2 className="animate-spin" /> : userQuestions.length > 0 ? (
                     <ul className="space-y-2">
                         {userQuestions.map(q => (
                             <li key={q.id} className="text-primary hover:underline">

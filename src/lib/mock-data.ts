@@ -5,8 +5,19 @@ import { formatDistanceToNow } from 'date-fns';
 export type User = {
   id: string;
   name: string;
+  email: string;
   avatarUrl: string;
+  bio: string;
 };
+
+export type Notification = {
+    id: string;
+    userId: string;
+    message: string;
+    link: string;
+    read: boolean;
+    createdAt: string;
+}
 
 export type Tag = 'daily life' | 'science' | 'technology' | 'study' | 'career' | 'other';
 
@@ -31,13 +42,6 @@ export type Question = {
   createdAt: string;
   answers: Answer[];
 };
-
-// Keep mock users for the simple auth system until full Firebase Auth is implemented
-export const users: User[] = [
-  { id: 'user-1', name: 'Alice', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'user-2', name: 'Bob', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'user-3', name: 'Charlie', avatarUrl: 'https://placehold.co/100x100.png' },
-];
 
 const docToQuestion = (doc: any): Question => {
   const data = doc.data();

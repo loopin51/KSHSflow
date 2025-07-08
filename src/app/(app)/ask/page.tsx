@@ -7,19 +7,18 @@ import { AskQuestionForm } from '@/components/questions/ask-question-form';
 import { Loader2 } from 'lucide-react';
 
 export default function AskQuestionPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // If the user data is not loaded yet, do nothing.
-    // If it has loaded and is null, then redirect.
-    if (user === null) {
+    // If auth state is done loading and there's no user, redirect.
+    if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   // While waiting for user data or redirecting, show a loading state.
-  if (!user) {
+  if (isLoading || !user) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />

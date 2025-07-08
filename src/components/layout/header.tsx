@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, MessageCircleQuestion, LogOut, Bell } from 'lucide-react';
+import { Search, MessageCircleQuestion, LogOut, Bell, Check } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -16,10 +16,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useEffect, useState } from 'react';
+import type { Notification } from '@/lib/mock-data';
+import { getNotificationsForUser, markNotificationAsRead } from '@/actions/notification';
 
 export function Header() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    if (user) {
+        getNotificationsForUser(user.id).then(setNotifications);
+    }
+  }, [user]);
+
+  const handleNotificationClick = async (notification: Notification) => {
+      router.push(notification.link);
+      if (!notification.read) {
+          await markNotificationAsRead(notification.id);
+          setNotifications(prev => prev.map(n => n.id === notification.id ? {...n, read: true} : n));
+      }
+  };
 
   const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('') : '';
 
@@ -44,23 +62,27 @@ export function Header() {
                 <>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full relative">
                                 <Bell className="h-5 w-5" />
+                                {notifications.some(n => !n.read) && (
+                                    <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-card" />
+                                )}
                                 <span className="sr-only">Notifications</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-80">
                             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="flex-col items-start gap-1 cursor-pointer">
-                                <p className="font-medium">Your question got an answer</p>
-                                <p className="text-xs text-muted-foreground">"How to learn Next.js?" has a new answer from Bob.</p>
-                            </DropdownMenuItem>
-                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="flex-col items-start gap-1 cursor-pointer">
-                                <p className="font-medium">You were mentioned</p>
-                                <p className="text-xs text-muted-foreground">Charlie mentioned you in "What's for lunch?".</p>
-                            </DropdownMenuItem>
+                            {notifications.length > 0 ? notifications.map(n => (
+                                <DropdownMenuItem key={n.id} onClick={() => handleNotificationClick(n)} className="flex items-start gap-2 cursor-pointer">
+                                    <div className="flex-shrink-0 mt-1">
+                                      {n.read ? <Check className="h-4 w-4 text-muted-foreground" /> : <div className="h-4 w-4 flex items-center justify-center"><div className="h-2 w-2 rounded-full bg-primary" /></div>}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground whitespace-normal">{n.message}</p>
+                                </DropdownMenuItem>
+                            )) : (
+                                <p className="p-2 text-sm text-center text-muted-foreground">No new notifications</p>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
 
