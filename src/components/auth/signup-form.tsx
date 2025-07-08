@@ -37,7 +37,7 @@ export function SignupForm() {
     const success = await signup(values.name, values.email);
     setIsLoading(false);
     if (success) {
-      toast({ title: '계정 생성됨', description: '캠퍼스오버플로우에 오신 것을 환영합니다!' });
+      toast({ title: '계정 생성됨', description: '강곽플로우에 오신 것을 환영합니다!' });
       router.push('/');
     } else {
       toast({ title: '가입 실패', description: '이 이메일을 사용하는 사용자가 이미 존재할 수 있습니다.', variant: 'destructive' });

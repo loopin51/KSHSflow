@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: '캠퍼스오버플로우',
-  description: '캠퍼스 커뮤니티를 위한 Q&A 플랫폼입니다.',
+  title: '강곽플로우',
+  description: '강곽플로우는 캠퍼스 커뮤니티를 위한 Q&A 플랫폼입니다.',
 };
 
 export default function RootLayout({

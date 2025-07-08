@@ -45,7 +45,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <MessageCircleQuestion className="h-6 w-6 text-primary" />
-          <span className="hidden font-bold sm:inline-block">캠퍼스오버플로우</span>
+          <span className="hidden font-bold sm:inline-block">강곽플로우</span>
         </Link>
         <div className="flex-1 px-4 sm:px-8 lg:px-16">
           <div className="relative">
