@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, MessageCircleQuestion } from 'lucide-react';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export function Header() {
   return (
@@ -22,17 +21,12 @@ export function Header() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
-          <SignedOut>
             <Button variant="ghost" asChild>
-              <Link href="/sign-in">Log In</Link>
+              <Link href="/login">Log In</Link>
             </Button>
             <Button asChild>
-              <Link href="/sign-up">Sign Up</Link>
+              <Link href="/signup">Sign Up</Link>
             </Button>
-          </SignedOut>
         </div>
       </div>
     </header>
