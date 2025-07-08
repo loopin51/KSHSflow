@@ -14,7 +14,6 @@ import { Loader2, Users, Tags, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { createQuestion } from '@/actions/question';
-import { automaticMentions } from '@/ai/flows/automatic-mentions';
 import { recommendUsers } from '@/ai/flows/recommend-users';
 import { suggestTags } from '@/ai/flows/suggest-tags';
 import { debounce } from '@/lib/utils';
@@ -33,8 +32,7 @@ export function AskQuestionForm() {
   const { user } = useAuth();
   
   const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
-  const [isDetectingMentions, setIsDetectingMentions] = useState(false);
-
+  
   const [recommendedUsers, setRecommendedUsers] = useState<string[]>([]);
   const [isRecommendingUsers, setIsRecommendingUsers] = useState(false);
 
@@ -47,21 +45,12 @@ export function AskQuestionForm() {
   });
 
   const handleBodyChange = useCallback(
-    debounce(async (body: string) => {
-        if (body.trim().length < 20) {
-            setMentionedUsers([]);
-            return;
-        }
-        setIsDetectingMentions(true);
-        try {
-            const result = await automaticMentions({ question: body });
-            setMentionedUsers(result.mentionedUsernames);
-        } catch (error) {
-            console.error("Error detecting mentions:", error);
-        } finally {
-            setIsDetectingMentions(false);
-        }
-    }, 500),
+    debounce((body: string) => {
+        const mentionRegex = /@(\w+)/g;
+        const mentions = body.match(mentionRegex)?.map(m => m.substring(1)) || [];
+        const uniqueMentions = [...new Set(mentions)];
+        setMentionedUsers(uniqueMentions);
+    }, 300),
     []
   );
 
@@ -109,7 +98,7 @@ export function AskQuestionForm() {
     const currentBody = form.getValues('body');
     const newBody = `${currentBody} @${username}`;
     form.setValue('body', newBody, { shouldValidate: true });
-    handleBodyChange(newBody); // re-run mention detection
+    handleBodyChange(newBody);
   }
 
   function onSubmit(values: z.infer<typeof questionSchema>) {
@@ -186,7 +175,6 @@ export function AskQuestionForm() {
                 <div className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
                     <h3 className="text-lg font-semibold">사용자 언급</h3>
-                    {isDetectingMentions && <Loader2 className="h-4 w-4 animate-spin" />}
                 </div>
               <CardDescription>
                 @로 언급된 사용자에게 알림이 갑니다. 아래 버튼을 사용하여 AI 추천을 받아보세요.
