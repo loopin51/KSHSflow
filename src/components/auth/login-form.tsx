@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -17,6 +18,8 @@ const loginSchema = z.object({
 export function LoginForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const { login } = useAuth();
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -26,9 +29,14 @@ export function LoginForm() {
   });
 
   function onSubmit(values: z.infer<typeof loginSchema>) {
-    console.log(values);
-    toast({ title: 'Login Successful', description: 'Welcome back!' });
-    router.push('/');
+    const loggedIn = login(values.email);
+    if (loggedIn) {
+      toast({ title: 'Login Successful', description: 'Welcome back!' });
+      router.push('/');
+      router.refresh();
+    } else {
+      toast({ title: 'Login Failed', description: 'Could not log you in.', variant: 'destructive' });
+    }
   }
 
   return (

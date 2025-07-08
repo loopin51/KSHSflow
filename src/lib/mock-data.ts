@@ -28,7 +28,7 @@ export type Question = {
   answers: Answer[];
 };
 
-const users: User[] = [
+export const users: User[] = [
   { id: 'user-1', name: 'Alice', avatarUrl: 'https://placehold.co/100x100.png' },
   { id: 'user-2', name: 'Bob', avatarUrl: 'https://placehold.co/100x100.png' },
   { id: 'user-3', name: 'Charlie', avatarUrl: 'https://placehold.co/100x100.png' },

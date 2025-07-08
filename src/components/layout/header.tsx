@@ -1,9 +1,27 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, MessageCircleQuestion } from 'lucide-react';
+import { Search, MessageCircleQuestion, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('') : '';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card">
       <div className="container flex h-16 items-center justify-between">
@@ -21,12 +39,46 @@ export function Header() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Log In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Sign Up</Link>
-            </Button>
+            {user ? (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                        <Avatar className="h-9 w-9" data-ai-hint="person avatar">
+                            <AvatarImage src={user.avatarUrl} alt={user.name} />
+                            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                        </Avatar>
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/profile')}>
+                        Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/ask')}>
+                        Ask Question
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                    </DropdownMenuItem>
+                    </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+                <>
+                    <Button variant="ghost" asChild>
+                    <Link href="/login">Log In</Link>
+                    </Button>
+                    <Button asChild>
+                    <Link href="/signup">Sign Up</Link>
+                    </Button>
+                </>
+            )}
         </div>
       </div>
     </header>
