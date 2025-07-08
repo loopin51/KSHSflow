@@ -33,15 +33,6 @@ export function AskQuestionForm() {
   const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
   const [isDetectingMentions, setIsDetectingMentions] = useState(false);
 
-  const form = useForm<z.infer<typeof questionSchema>>({
-    resolver: zodResolver(questionSchema),
-    defaultValues: {
-      title: '',
-      body: '',
-      tags: '',
-    },
-  });
-
   const handleBodyChange = useCallback(
     debounce(async (body: string) => {
         if (body.trim().length < 20) {
@@ -141,26 +132,36 @@ export function AskQuestionForm() {
                 </FormItem>
               )}
             />
-            {(isDetectingMentions || mentionedUsers.length > 0) && (
-                <div className="mt-4 p-4 border rounded-lg bg-secondary/50">
-                    <div className="flex items-center gap-2 mb-2 text-sm font-medium">
-                        <Users className="h-4 w-4" />
-                        <span>Mentioned Users</span>
-                        {isDetectingMentions && <Loader2 className="h-4 w-4 animate-spin" />}
-                    </div>
-                    {mentionedUsers.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                            {mentionedUsers.map((user) => (
-                                <Badge key={user} variant="outline">@{user}</Badge>
-                            ))}
-                        </div>
-                    ) : (
-                        !isDetectingMentions && <p className="text-sm text-muted-foreground">No users mentioned yet.</p>
-                    )}
-                </div>
-            )}
           </CardContent>
         </Card>
+
+        {(isDetectingMentions || mentionedUsers.length > 0) && (
+          <Card>
+            <CardHeader>
+                <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    <h3 className="text-lg font-semibold">Mentioned Users</h3>
+                    {isDetectingMentions && <Loader2 className="h-4 w-4 animate-spin" />}
+                </div>
+              <CardDescription>
+                Users mentioned with @ will be notified.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {mentionedUsers.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {mentionedUsers.map((user) => (
+                    <Badge key={user} variant="secondary">@{user}</Badge>
+                  ))}
+                </div>
+              ) : (
+                !isDetectingMentions && (
+                  <p className="text-sm text-muted-foreground">Start typing with @ to mention someone.</p>
+                )
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
