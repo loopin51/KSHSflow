@@ -4,6 +4,7 @@ import { useState, useTransition, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useRouter } from 'next/navigation';
 import { debounce } from '@/lib/utils';
 import { suggestTags } from '@/ai/flows/suggest-tags';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
@@ -26,6 +27,7 @@ export function AskQuestionForm() {
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
@@ -89,6 +91,7 @@ export function AskQuestionForm() {
     });
     form.reset();
     setSuggestedTags([]);
+    router.push('/');
   }
 
   return (

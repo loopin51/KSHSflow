@@ -3,6 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useRouter } from 'next/navigation';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ interface AnswerFormProps {
 
 export function AnswerForm({ questionId }: AnswerFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<z.infer<typeof answerSchema>>({
     resolver: zodResolver(answerSchema),
     defaultValues: {
@@ -33,6 +35,7 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
         description: "Thank you for contributing."
     });
     form.reset();
+    router.refresh();
   }
 
   return (
