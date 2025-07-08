@@ -1,22 +1,30 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { getQuestions } from '@/lib/mock-data';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(user?.name || '');
 
   useEffect(() => {
     if (user === null) {
       router.push('/login');
+    } else {
+      setName(user.name);
     }
   }, [user, router]);
 
@@ -28,7 +36,24 @@ export default function ProfilePage() {
     );
   }
 
-  const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('');
+  const handleSave = () => {
+    if (name.trim()) {
+      updateUser({ name });
+      setIsEditing(false);
+      toast({
+        title: 'Profile Updated',
+        description: 'Your changes have been saved.',
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Name cannot be empty.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getInitials = (nameStr: string) => nameStr.split(' ').map(n => n[0]).join('');
   const userQuestions = getQuestions().filter(q => q.author.id === user.id);
   const userAnswers = getQuestions().flatMap(q => q.answers).filter(a => a.author.id === user.id);
 
@@ -41,10 +66,28 @@ export default function ProfilePage() {
                 <AvatarFallback className="text-3xl">{getInitials(user.name)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-                <CardTitle className="text-3xl">{user.name}</CardTitle>
+                {isEditing ? (
+                  <Input 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    className="text-3xl font-bold h-auto p-0 border-0 shadow-none focus-visible:ring-0"
+                  />
+                ) : (
+                  <CardTitle className="text-3xl">{user.name}</CardTitle>
+                )}
                 <p className="text-muted-foreground">Joined recently</p>
             </div>
-            <Button variant="outline" onClick={logout}>Log Out</Button>
+            <div className="flex items-center gap-2">
+                {isEditing ? (
+                  <>
+                    <Button onClick={handleSave}>Save</Button>
+                    <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                  </>
+                ) : (
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                )}
+                <Button variant="outline" onClick={logout}>Log Out</Button>
+            </div>
         </CardHeader>
         <CardContent>
             <div className="mt-6">
