@@ -19,8 +19,8 @@ import { debounce } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 const questionSchema = z.object({
-  title: z.string().min(15, { message: '제목은 15자 이상이어야 합니다.' }).max(130),
-  body: z.string().min(30, { message: '본문은 30자 이상이어야 합니다.' }),
+  title: z.string().min(1, { message: '제목을 입력해주세요.' }),
+  body: z.string().min(1, { message: '본문을 입력해주세요.' }),
   tags: z.string().min(1, { message: '태그를 하나 이상 입력해주세요.' }),
   manualMentions: z.string().optional(),
 });
