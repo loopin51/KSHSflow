@@ -3,6 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useRouter } from 'next/navigation';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ const signupSchema = z.object({
 
 export function SignupForm() {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -28,7 +30,7 @@ export function SignupForm() {
   function onSubmit(values: z.infer<typeof signupSchema>) {
     console.log(values);
     toast({ title: 'Account Created', description: 'You can now log in.' });
-    // In a real app, you'd redirect here, e.g., router.push('/login')
+    router.push('/login');
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useRouter } from 'next/navigation';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ const loginSchema = z.object({
 
 export function LoginForm() {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -26,7 +28,7 @@ export function LoginForm() {
   function onSubmit(values: z.infer<typeof loginSchema>) {
     console.log(values);
     toast({ title: 'Login Successful', description: 'Welcome back!' });
-    // In a real app, you'd redirect here, e.g., router.push('/')
+    router.push('/');
   }
 
   return (
