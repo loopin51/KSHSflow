@@ -15,6 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { createQuestion } from '@/actions/question';
 
 const questionSchema = z.object({
   title: z.string().min(15, { message: 'Title must be at least 15 characters.' }).max(130),
@@ -28,6 +30,7 @@ export function AskQuestionForm() {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
@@ -83,15 +86,33 @@ export function AskQuestionForm() {
   };
 
   function onSubmit(values: z.infer<typeof questionSchema>) {
-    console.log(values);
-    // Here you would call a server action to submit the question
-    toast({
-      title: "Question Posted!",
-      description: "Your question has been successfully posted."
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to ask a question.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        await createQuestion({ ...values, author: user });
+        toast({
+          title: "Question Posted!",
+          description: "Your question has been successfully posted."
+        });
+        form.reset();
+        setSuggestedTags([]);
+        router.push('/');
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to post your question. Please try again.",
+          variant: "destructive"
+        });
+      }
     });
-    form.reset();
-    setSuggestedTags([]);
-    router.push('/');
   }
 
   return (

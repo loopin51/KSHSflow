@@ -8,6 +8,10 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { createAnswer } from '@/actions/question';
+import { useTransition } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const answerSchema = z.object({
   content: z.string().min(20, { message: 'Answer must be at least 20 characters long.' }),
@@ -20,6 +24,9 @@ interface AnswerFormProps {
 export function AnswerForm({ questionId }: AnswerFormProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
+  const [isPending, startTransition] = useTransition();
+
   const form = useForm<z.infer<typeof answerSchema>>({
     resolver: zodResolver(answerSchema),
     defaultValues: {
@@ -28,14 +35,32 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
   });
 
   function onSubmit(values: z.infer<typeof answerSchema>) {
-    console.log({ ...values, questionId });
-    // Here you would call a server action to submit the answer
-    toast({
-        title: "Answer Posted!",
-        description: "Thank you for contributing."
+    if (!user) {
+        toast({
+            title: 'Not Logged In',
+            description: 'You must be logged in to post an answer.',
+            variant: 'destructive'
+        });
+        return;
+    }
+
+    startTransition(async () => {
+        try {
+            await createAnswer({ content: values.content, questionId, author: user });
+            toast({
+                title: "Answer Posted!",
+                description: "Thank you for contributing."
+            });
+            form.reset();
+            router.refresh();
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Could not post your answer.",
+                variant: "destructive"
+            });
+        }
     });
-    form.reset();
-    router.refresh();
   }
 
   return (
@@ -58,7 +83,10 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit">Post Your Answer</Button>
+        <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Post Your Answer
+        </Button>
       </form>
     </Form>
   );
