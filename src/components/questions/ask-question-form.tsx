@@ -10,12 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Loader2, Users, Tags, Sparkles } from 'lucide-react';
+import { Loader2, Users, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { createQuestion } from '@/actions/question';
 import { recommendUsers } from '@/ai/flows/recommend-users';
-import { suggestTags } from '@/ai/flows/suggest-tags';
 import { debounce } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
@@ -36,9 +35,6 @@ export function AskQuestionForm() {
   const [recommendedUsers, setRecommendedUsers] = useState<string[]>([]);
   const [isRecommendingUsers, setIsRecommendingUsers] = useState(false);
 
-  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
-  const [isSuggestingTags, setIsSuggestingTags] = useState(false);
-
   const form = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
     defaultValues: { title: '', body: '', tags: ''},
@@ -53,23 +49,6 @@ export function AskQuestionForm() {
     }, 300),
     []
   );
-
-  const handleSuggestTags = async () => {
-      const { title, body } = form.getValues();
-      if (!title && !body) {
-          toast({ title: '먼저 제목이나 본문을 입력해주세요.', variant: 'destructive' });
-          return;
-      }
-      setIsSuggestingTags(true);
-      try {
-        const result = await suggestTags({ question: `${title}\n${body}`});
-        setSuggestedTags(result.tags);
-      } catch (error) {
-          toast({ title: '태그를 추천할 수 없습니다.', variant: 'destructive' });
-      } finally {
-          setIsSuggestingTags(false);
-      }
-  };
   
   const handleRecommendUsers = async () => {
     const { body } = form.getValues();
@@ -87,12 +66,6 @@ export function AskQuestionForm() {
         setIsRecommendingUsers(false);
     }
   };
-
-  const addTag = (tag: string) => {
-      const currentTags = form.getValues('tags');
-      const newTags = currentTags ? `${currentTags} ${tag}` : tag;
-      form.setValue('tags', newTags, { shouldValidate: true });
-  }
 
   const addMention = (username: string) => {
     const currentBody = form.getValues('body');
@@ -227,22 +200,7 @@ export function AskQuestionForm() {
                 </FormItem>
               )}
             />
-             {isSuggestingTags ? <Loader2 className="mt-4 h-5 w-5 animate-spin"/> : suggestedTags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                    {suggestedTags.map((tag) => (
-                        <Button key={tag} type="button" size="sm" variant="outline" onClick={() => addTag(tag)}>
-                            {tag}
-                        </Button>
-                    ))}
-                </div>
-             )}
           </CardContent>
-          <CardFooter>
-             <Button type="button" variant="outline" onClick={handleSuggestTags} disabled={isSuggestingTags}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                태그 추천받기
-            </Button>
-          </CardFooter>
         </Card>
 
         <Button type="submit" disabled={isPending}>
