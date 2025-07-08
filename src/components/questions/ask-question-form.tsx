@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,10 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { createQuestion } from '@/actions/question';
+import { automaticMentions } from '@/ai/flows/automatic-mentions';
+import { debounce } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const questionSchema = z.object({
   title: z.string().min(15, { message: 'Title must be at least 15 characters.' }).max(130),
@@ -26,6 +30,8 @@ export function AskQuestionForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { user } = useAuth();
+  const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
+  const [isDetectingMentions, setIsDetectingMentions] = useState(false);
 
   const form = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
@@ -35,6 +41,26 @@ export function AskQuestionForm() {
       tags: '',
     },
   });
+
+  const handleBodyChange = useCallback(
+    debounce(async (body: string) => {
+        if (body.trim().length < 20) {
+            setMentionedUsers([]);
+            return;
+        }
+        setIsDetectingMentions(true);
+        try {
+            const result = await automaticMentions({ question: body });
+            setMentionedUsers(result.mentionedUsernames);
+        } catch (error) {
+            console.error("Error detecting mentions:", error);
+            setMentionedUsers([]);
+        } finally {
+            setIsDetectingMentions(false);
+        }
+    }, 500),
+    []
+  );
 
   function onSubmit(values: z.infer<typeof questionSchema>) {
     if (!user) {
@@ -92,7 +118,7 @@ export function AskQuestionForm() {
         <Card>
           <CardHeader>
             <CardTitle>Body</CardTitle>
-            <CardDescription>Include all the information someone would need to answer your question.</CardDescription>
+            <CardDescription>Include all the information someone would need to answer your question. Use @ to mention users.</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
@@ -101,12 +127,38 @@ export function AskQuestionForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Textarea placeholder="Type your question details here..." rows={10} {...field} />
+                    <Textarea
+                      placeholder="Type your question details here..."
+                      rows={10}
+                      {...field}
+                      onChange={(e) => {
+                          field.onChange(e);
+                          handleBodyChange(e.target.value);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {(isDetectingMentions || mentionedUsers.length > 0) && (
+                <div className="mt-4 p-4 border rounded-lg bg-secondary/50">
+                    <div className="flex items-center gap-2 mb-2 text-sm font-medium">
+                        <Users className="h-4 w-4" />
+                        <span>Mentioned Users</span>
+                        {isDetectingMentions && <Loader2 className="h-4 w-4 animate-spin" />}
+                    </div>
+                    {mentionedUsers.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                            {mentionedUsers.map((user) => (
+                                <Badge key={user} variant="outline">@{user}</Badge>
+                            ))}
+                        </div>
+                    ) : (
+                        !isDetectingMentions && <p className="text-sm text-muted-foreground">No users mentioned yet.</p>
+                    )}
+                </div>
+            )}
           </CardContent>
         </Card>
 
