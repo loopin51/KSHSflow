@@ -38,7 +38,7 @@ export default async function QuestionDetailPage({ params }: { params: { id: str
             ))}
           </div>
           <div className="flex justify-end">
-            <UserCard user={question.author} timestamp={question.createdAt} action="질문함" />
+            <UserCard user={question.author} timestamp={question.createdAt} action="asked" />
           </div>
         </div>
       </div>

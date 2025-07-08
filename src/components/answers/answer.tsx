@@ -13,7 +13,7 @@ interface AnswerProps {
 export function Answer({ answer }: AnswerProps) {
   return (
     <>
-    <div className={cn("py-6", answer.isAccepted && "rounded-lg bg-accent p-4 -m-4")}>
+    <div id={`answer-${answer.id}`} className={cn("py-6", answer.isAccepted && "rounded-lg bg-accent p-4 -m-4")}>
       <div className="flex gap-4 md:gap-8">
         <div className="flex flex-col items-center gap-2">
           <Vote votes={answer.votes} />
@@ -26,7 +26,7 @@ export function Answer({ answer }: AnswerProps) {
         <div className="flex-1 min-w-0">
           <ContentDisplay content={answer.body} />
           <div className="flex justify-end mt-4">
-            <UserCard user={answer.author} timestamp={answer.createdAt} action="답변함" />
+            <UserCard user={answer.author} timestamp={answer.createdAt} action="answered" />
           </div>
         </div>
       </div>

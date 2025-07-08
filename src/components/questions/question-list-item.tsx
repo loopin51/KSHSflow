@@ -30,7 +30,7 @@ export function QuestionListItem({ question }: QuestionListItemProps) {
               ))}
             </div>
             <div className="flex justify-end mt-2">
-                <UserCard user={question.author} timestamp={question.createdAt} action="질문함" />
+                <UserCard user={question.author} timestamp={question.createdAt} action="asked" />
             </div>
           </div>
         </div>

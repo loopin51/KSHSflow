@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { getQuestions } from '@/lib/mock-data';
+import { getQuestionsByAuthor, getAnswersByAuthor } from '@/lib/mock-data';
 import type { Question, Answer } from '@/lib/mock-data';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -39,17 +39,10 @@ export default function ProfilePage() {
       
       const fetchUserContributions = async () => {
         setIsContributionsLoading(true);
-        const allQuestions = await getQuestions();
-        const uQuestions = allQuestions.filter(q => q.author.id === user.id);
-        
-        const allAnswers: Answer[] = [];
-        for (const q of allQuestions) {
-            if (q.answers) {
-              allAnswers.push(...q.answers);
-            }
-        }
-        const uAnswers = allAnswers.filter(a => a.author.id === user.id);
-
+        const [uQuestions, uAnswers] = await Promise.all([
+          getQuestionsByAuthor(user.id),
+          getAnswersByAuthor(user.id)
+        ]);
         setUserQuestions(uQuestions);
         setUserAnswers(uAnswers);
         setIsContributionsLoading(false);
@@ -158,6 +151,22 @@ export default function ProfilePage() {
                     </ul>
                 ) : (
                     <p className="text-muted-foreground">아직 작성한 질문이 없습니다.</p>
+                )}
+            </div>
+            <div className="mt-6">
+                <h3 className="text-xl font-bold mb-4">작성한 답변</h3>
+                {isContributionsLoading ? <Loader2 className="animate-spin" /> : userAnswers.length > 0 ? (
+                    <ul className="space-y-2">
+                        {userAnswers.map(a => (
+                            <li key={a.id} className="text-primary hover:underline">
+                                <Link href={`/questions/${a.questionId}#answer-${a.id}`}>
+                                    {a.questionTitle}에 대한 답변
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-muted-foreground">아직 작성한 답변이 없습니다.</p>
                 )}
             </div>
         </CardContent>

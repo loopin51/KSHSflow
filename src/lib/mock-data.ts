@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, Timestamp, where, collectionGroup } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -29,6 +29,8 @@ export type Answer = {
   votes: number;
   createdAt: string;
   isAccepted: boolean;
+  questionId: string;
+  questionTitle: string;
 };
 
 export type Question = {
@@ -58,6 +60,15 @@ const docToQuestion = (doc: any): Question => {
   } as Question;
 };
 
+const docToAnswer = (doc: any): Answer => {
+    const data = doc.data();
+    const createdAt = data.createdAt instanceof Timestamp
+        ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true, locale: ko })
+        : '시간 정보 없음';
+    return { id: doc.id, ...data, createdAt } as Answer;
+};
+
+
 export const getQuestions = async (): Promise<Question[]> => {
   try {
     const questionsCol = collection(db, 'questions');
@@ -86,17 +97,41 @@ export const getQuestionById = async (id: string): Promise<Question | undefined>
     const answersQuery = query(answersCol, orderBy('createdAt', 'desc'));
     const answersSnapshot = await getDocs(answersQuery);
 
-    question.answers = answersSnapshot.docs.map(doc => {
-      const data = doc.data();
-      const createdAt = data.createdAt instanceof Timestamp 
-        ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true, locale: ko })
-        : '시간 정보 없음';
-      return { id: doc.id, ...data, createdAt } as Answer;
-    });
+    question.answers = answersSnapshot.docs.map(doc => docToAnswer(doc));
 
     return question;
   } catch (error) {
     console.error(`Error fetching question ${id}:`, error);
     return undefined;
   }
+};
+
+export const getQuestionsByAuthor = async (authorId: string): Promise<Question[]> => {
+    try {
+        const q = query(
+            collection(db, 'questions'),
+            where('author.id', '==', authorId),
+            orderBy('createdAt', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => docToQuestion(doc));
+    } catch (error) {
+        console.error("Error fetching user's questions:", error);
+        return [];
+    }
+};
+
+export const getAnswersByAuthor = async (authorId: string): Promise<Answer[]> => {
+    try {
+        const answersQuery = query(
+            collectionGroup(db, 'answers'),
+            where('author.id', '==', authorId),
+            orderBy('createdAt', 'desc')
+        );
+        const snapshot = await getDocs(answersQuery);
+        return snapshot.docs.map(doc => docToAnswer(doc));
+    } catch (error) {
+        console.error("Error fetching user's answers:", error);
+        return [];
+    }
 };

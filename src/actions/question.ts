@@ -12,6 +12,7 @@ interface CreateQuestionInput {
   body: string;
   tags: string;
   author: User;
+  mentionedUsernames: string[];
 }
 
 export async function createQuestion(input: CreateQuestionInput) {
@@ -33,11 +34,8 @@ export async function createQuestion(input: CreateQuestionInput) {
       views: 0,
     });
     
-    const mentionRegex = /@(\w+)/g;
-    const mentionedNames = input.body.match(mentionRegex)?.map(m => m.substring(1)) || [];
-    
-    if (mentionedNames.length > 0) {
-        const mentionedUsers = await getUsersByNames(mentionedNames);
+    if (input.mentionedUsernames.length > 0) {
+        const mentionedUsers = await getUsersByNames(input.mentionedUsernames);
         for (const mentionedUser of mentionedUsers) {
             if (mentionedUser.id !== input.author.id) {
                 const message = `${input.author.name}님이 질문에서 당신을 언급했습니다.`;
@@ -49,6 +47,7 @@ export async function createQuestion(input: CreateQuestionInput) {
 
 
     revalidatePath('/');
+    revalidatePath('/profile');
     return { questionId: questionRef.id };
   } catch (error) {
     console.error('Error creating question:', error);
@@ -73,6 +72,8 @@ export async function createAnswer(input: CreateAnswerInput) {
             if (!questionDoc.exists()) {
                 throw new Error("질문이 존재하지 않습니다!");
             }
+            
+            const questionData = questionDoc.data();
 
             const answerData = {
                 body: input.content,
@@ -81,17 +82,20 @@ export async function createAnswer(input: CreateAnswerInput) {
                     name: input.author.name,
                     avatarUrl: input.author.avatarUrl
                 },
+                questionId: input.questionId,
+                questionTitle: questionData.title,
                 createdAt: Timestamp.now(),
                 votes: 0,
                 isAccepted: false
             };
             transaction.set(doc(answersColRef), answerData);
 
-            const newAnswersCount = (questionDoc.data().answersCount || 0) + 1;
+            const newAnswersCount = (questionData.answersCount || 0) + 1;
             transaction.update(questionRef, { answersCount: newAnswersCount });
         });
 
         revalidatePath(`/questions/${input.questionId}`);
+        revalidatePath('/profile');
     } catch (error) {
         console.error('Error creating answer:', error);
         throw new Error('답변을 생성하지 못했습니다.');

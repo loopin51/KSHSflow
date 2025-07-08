@@ -81,8 +81,10 @@ export function AskQuestionForm() {
 
   const addMention = (username: string) => {
     const currentBody = form.getValues('body');
-    const newBody = `${currentBody} @${username}`;
-    form.setValue('body', newBody, { shouldValidate: true });
+    if (!currentBody.includes(`@${username}`)) {
+      const newBody = `${currentBody} @${username}`.trim();
+      form.setValue('body', newBody, { shouldValidate: true });
+    }
   }
 
   function onSubmit(values: z.infer<typeof questionSchema>) {
@@ -91,17 +93,9 @@ export function AskQuestionForm() {
       return;
     }
     
-    const manualMentionsAsTags = (values.manualMentions || '')
-      .split(' ')
-      .filter(Boolean)
-      .map(name => `@${name}`)
-      .join(' ');
-
-    const newBody = `${values.body}\n\n${manualMentionsAsTags}`.trim();
-
     startTransition(async () => {
       try {
-        await createQuestion({ ...values, body: newBody, author: user });
+        await createQuestion({ ...values, author: user, mentionedUsernames: mentionedUsers });
         toast({ title: "질문 등록됨!", description: "질문이 성공적으로 등록되었습니다." });
         router.push('/');
       } catch (error) {
@@ -197,7 +191,7 @@ export function AskQuestionForm() {
                 {isRecommendingUsers ? <Loader2 className="h-5 w-5 animate-spin mt-4"/> : recommendedUsers.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
                         <FormLabel className="w-full text-sm">추천:</FormLabel>
-                        {recommendedUsers.map((user) => (
+                        {recommendedUsers.filter(u => !mentionedUsers.includes(u)).map((user) => (
                            <Button key={user} type="button" size="sm" variant="outline" onClick={() => addMention(user)}>
                                @{user} 추가
                            </Button>

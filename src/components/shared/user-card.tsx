@@ -9,6 +9,7 @@ interface UserCardProps {
 
 export function UserCard({ user, timestamp, action }: UserCardProps) {
     const initials = user.name.split(' ').map(n => n[0]).join('');
+    const actionText = action === 'asked' ? '질문함' : '답변함';
 
     return (
         <div className="flex items-center gap-2 text-sm">
@@ -18,7 +19,7 @@ export function UserCard({ user, timestamp, action }: UserCardProps) {
             </Avatar>
             <div>
                 <span className="font-semibold text-primary">{user.name}</span>
-                <span className="text-muted-foreground"> {action} {timestamp}</span>
+                <span className="text-muted-foreground"> {actionText} {timestamp}</span>
             </div>
         </div>
     );
