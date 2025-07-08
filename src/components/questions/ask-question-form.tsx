@@ -1,11 +1,11 @@
 'use client';
 
-import { useTransition, useState, useCallback } from 'react';
+import { useTransition, useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ const questionSchema = z.object({
   title: z.string().min(15, { message: '제목은 15자 이상이어야 합니다.' }).max(130),
   body: z.string().min(30, { message: '본문은 30자 이상이어야 합니다.' }),
   tags: z.string().min(1, { message: '태그를 하나 이상 입력해주세요.' }),
+  manualMentions: z.string().optional(),
 });
 
 export function AskQuestionForm() {
@@ -37,18 +38,29 @@ export function AskQuestionForm() {
 
   const form = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
-    defaultValues: { title: '', body: '', tags: ''},
+    defaultValues: { title: '', body: '', tags: '', manualMentions: '' },
   });
 
-  const handleBodyChange = useCallback(
-    debounce((body: string) => {
-        const mentionRegex = /@(\w+)/g;
-        const mentions = body.match(mentionRegex)?.map(m => m.substring(1)) || [];
-        const uniqueMentions = [...new Set(mentions)];
+  const debouncedMentionUpdate = useCallback(
+    debounce((body: string, manualMentions: string) => {
+        const mentionsFromBody = body.match(/@(\w+)/g)?.map(m => m.substring(1)) || [];
+        const mentionsFromInput = (manualMentions || '').split(' ').filter(Boolean);
+        
+        const allMentions = [...mentionsFromBody, ...mentionsFromInput];
+        const uniqueMentions = [...new Set(allMentions)];
         setMentionedUsers(uniqueMentions);
     }, 300),
     []
   );
+
+  const bodyValue = form.watch('body');
+  const manualMentionsValue = form.watch('manualMentions');
+
+  useEffect(() => {
+    if(bodyValue !== undefined && manualMentionsValue !== undefined) {
+      debouncedMentionUpdate(bodyValue, manualMentionsValue);
+    }
+  }, [bodyValue, manualMentionsValue, debouncedMentionUpdate]);
   
   const handleRecommendUsers = async () => {
     const { body } = form.getValues();
@@ -71,7 +83,6 @@ export function AskQuestionForm() {
     const currentBody = form.getValues('body');
     const newBody = `${currentBody} @${username}`;
     form.setValue('body', newBody, { shouldValidate: true });
-    handleBodyChange(newBody);
   }
 
   function onSubmit(values: z.infer<typeof questionSchema>) {
@@ -79,9 +90,18 @@ export function AskQuestionForm() {
       toast({ title: '오류', description: '질문을 하려면 로그인해야 합니다.', variant: 'destructive' });
       return;
     }
+    
+    const manualMentionsAsTags = (values.manualMentions || '')
+      .split(' ')
+      .filter(Boolean)
+      .map(name => `@${name}`)
+      .join(' ');
+
+    const newBody = `${values.body}\n\n${manualMentionsAsTags}`.trim();
+
     startTransition(async () => {
       try {
-        await createQuestion({ ...values, author: user });
+        await createQuestion({ ...values, body: newBody, author: user });
         toast({ title: "질문 등록됨!", description: "질문이 성공적으로 등록되었습니다." });
         router.push('/');
       } catch (error) {
@@ -130,10 +150,6 @@ export function AskQuestionForm() {
                       placeholder="질문 내용을 여기에 입력하세요..."
                       rows={10}
                       {...field}
-                      onChange={(e) => {
-                          field.onChange(e);
-                          handleBodyChange(e.target.value);
-                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -154,16 +170,32 @@ export function AskQuestionForm() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+                 <FormField
+                  control={form.control}
+                  name="manualMentions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>수동으로 사용자 언급</FormLabel>
+                      <FormControl>
+                        <Input placeholder="사용자 이름을 공백으로 구분하여 입력 (예: user1 user2)" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        '@' 기호 없이 사용자 이름을 입력해주세요.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 {mentionedUsers.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-2 mt-4">
                         <FormLabel className="w-full text-sm">감지된 언급:</FormLabel>
                         {mentionedUsers.map((user) => (
                             <Badge key={user} variant="secondary">@{user}</Badge>
                         ))}
                     </div>
                 )}
-                {isRecommendingUsers ? <Loader2 className="h-5 w-5 animate-spin"/> : recommendedUsers.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
+                {isRecommendingUsers ? <Loader2 className="h-5 w-5 animate-spin mt-4"/> : recommendedUsers.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
                         <FormLabel className="w-full text-sm">추천:</FormLabel>
                         {recommendedUsers.map((user) => (
                            <Button key={user} type="button" size="sm" variant="outline" onClick={() => addMention(user)}>
