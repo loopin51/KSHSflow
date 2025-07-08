@@ -14,7 +14,7 @@ import { useTransition } from 'react';
 import { Loader2 } from 'lucide-react';
 
 const answerSchema = z.object({
-  content: z.string().min(20, { message: 'Answer must be at least 20 characters long.' }),
+  content: z.string().min(20, { message: '답변은 20자 이상이어야 합니다.' }),
 });
 
 interface AnswerFormProps {
@@ -37,8 +37,8 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
   function onSubmit(values: z.infer<typeof answerSchema>) {
     if (!user) {
         toast({
-            title: 'Not Logged In',
-            description: 'You must be logged in to post an answer.',
+            title: '로그인되지 않음',
+            description: '답변을 게시하려면 로그인해야 합니다.',
             variant: 'destructive'
         });
         return;
@@ -48,15 +48,15 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
         try {
             await createAnswer({ content: values.content, questionId, author: user });
             toast({
-                title: "Answer Posted!",
-                description: "Thank you for contributing."
+                title: "답변 등록됨!",
+                description: "기여해 주셔서 감사합니다."
             });
             form.reset();
             router.refresh();
         } catch (error) {
             toast({
-                title: "Error",
-                description: "Could not post your answer.",
+                title: "오류",
+                description: "답변을 게시할 수 없습니다.",
                 variant: "destructive"
             });
         }
@@ -73,7 +73,7 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
             <FormItem>
               <FormControl>
                 <Textarea
-                  placeholder="Provide a detailed answer..."
+                  placeholder="자세한 답변을 제공해주세요..."
                   rows={8}
                   className="resize-y"
                   {...field}
@@ -85,7 +85,7 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
         />
         <Button type="submit" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Post Your Answer
+            답변 등록하기
         </Button>
       </form>
     </Form>

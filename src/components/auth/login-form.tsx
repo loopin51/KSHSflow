@@ -13,7 +13,7 @@ import { useState } from 'react';
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(1, { message: 'Password is required.' }),
+  password: z.string().min(1, { message: '비밀번호는 필수입니다.' }),
 });
 
 export function LoginForm() {
@@ -36,11 +36,11 @@ export function LoginForm() {
     setIsLoading(false);
     
     if (loggedIn) {
-      toast({ title: 'Login Successful', description: 'Welcome back!' });
+      toast({ title: '로그인 성공', description: '다시 오신 것을 환영합니다!' });
       router.push('/');
       router.refresh();
     } else {
-      toast({ title: 'Login Failed', description: 'Invalid email or password.', variant: 'destructive' });
+      toast({ title: '로그인 실패', description: '이메일 또는 비밀번호가 잘못되었습니다.', variant: 'destructive' });
     }
   }
 
@@ -52,7 +52,7 @@ export function LoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>이메일</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="m@example.com" {...field} />
               </FormControl>
@@ -65,7 +65,7 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>비밀번호</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -74,7 +74,7 @@ export function LoginForm() {
           )}
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? '로그인 중...' : '로그인'}
         </Button>
       </form>
     </Form>

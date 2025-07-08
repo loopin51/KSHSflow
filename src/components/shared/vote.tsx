@@ -38,7 +38,7 @@ export function Vote({ votes }: VoteProps) {
         size="icon"
         onClick={() => handleVote('up')}
         className={cn("h-10 w-10 rounded-full hover:bg-accent", userVote === 'up' && 'bg-accent text-accent-foreground')}
-        aria-label="Upvote"
+        aria-label="추천"
       >
         <ArrowUp className="h-6 w-6" />
       </Button>
@@ -48,7 +48,7 @@ export function Vote({ votes }: VoteProps) {
         size="icon"
         onClick={() => handleVote('down')}
         className={cn("h-10 w-10 rounded-full hover:bg-accent", userVote === 'down' && 'bg-accent text-accent-foreground')}
-        aria-label="Downvote"
+        aria-label="비추천"
       >
         <ArrowDown className="h-6 w-6" />
       </Button>

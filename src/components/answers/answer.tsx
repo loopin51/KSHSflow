@@ -18,7 +18,7 @@ export function Answer({ answer }: AnswerProps) {
         <div className="flex flex-col items-center gap-2">
           <Vote votes={answer.votes} />
           {answer.isAccepted && (
-            <div className="mt-2" title="Accepted Answer">
+            <div className="mt-2" title="채택된 답변">
               <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
           )}
@@ -26,7 +26,7 @@ export function Answer({ answer }: AnswerProps) {
         <div className="flex-1 min-w-0">
           <ContentDisplay content={answer.body} />
           <div className="flex justify-end mt-4">
-            <UserCard user={answer.author} timestamp={answer.createdAt} action="answered" />
+            <UserCard user={answer.author} timestamp={answer.createdAt} action="답변함" />
           </div>
         </div>
       </div>

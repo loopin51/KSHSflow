@@ -30,15 +30,15 @@ const recommendUsersPrompt = ai.definePrompt({
   input: { schema: RecommendUsersInputSchema },
   output: { schema: RecommendUsersOutputSchema },
   tools: [getUsersTool],
-  prompt: `You are an expert at connecting people. Your task is to recommend relevant users to mention in a question based on their expertise, which is described in their bio.
+  prompt: `당신은 사람들을 연결하는 전문가입니다. 당신의 임무는 사용자의 전문 지식이 담긴 자기소개를 기반으로 질문에 언급할 관련 사용자를 추천하는 것입니다.
 
-Analyze the user's question and use the getUsers tool to fetch a list of all available users and their bios.
+사용자의 질문을 분석하고 getUsers 도구를 사용하여 사용 가능한 모든 사용자와 그들의 자기소개 목록을 가져오세요.
 
-Based on the question's content and the users' bios, identify up to 3 users who would be most suitable to answer the question. Return their usernames.
+질문의 내용과 사용자의 자기소개를 바탕으로 질문에 가장 적합한 사용자를 최대 3명까지 식별하여 사용자 이름을 반환하세요.
 
-If no users seem relevant, return an empty list.
+관련 사용자가 없는 경우 빈 목록을 반환하세요.
 
-Question: {{{question}}}
+질문: {{{question}}}
 `,
 });
 

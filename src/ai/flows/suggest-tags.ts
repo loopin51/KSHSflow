@@ -30,11 +30,11 @@ const prompt = ai.definePrompt({
   name: 'suggestTagsPrompt',
   input: {schema: SuggestTagsInputSchema},
   output: {schema: SuggestTagsOutputSchema},
-  prompt: `Suggest 1 to 5 relevant tags for the following question. Tags should be lowercase, single words.
+  prompt: `다음 질문에 대해 1~5개의 관련 태그를 제안해주세요. 태그는 소문자 단일 단어여야 합니다.
 
-Question: {{{question}}}
+질문: {{{question}}}
 
-Tags:`,
+태그:`,
 });
 
 const suggestTagsFlow = ai.defineFlow(

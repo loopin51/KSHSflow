@@ -6,15 +6,15 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>Enter your email below to login to your account.</CardDescription>
+        <CardTitle className="text-2xl">로그인</CardTitle>
+        <CardDescription>계정에 로그인하려면 아래에 이메일을 입력하세요.</CardDescription>
       </CardHeader>
       <CardContent>
         <LoginForm />
       </CardContent>
       <CardFooter className="flex justify-center text-sm">
-        Don't have an account?&nbsp;
-        <Link href="/signup" className="underline text-primary">Sign up</Link>
+        계정이 없으신가요?&nbsp;
+        <Link href="/signup" className="underline text-primary">가입하기</Link>
       </CardFooter>
     </Card>
   );

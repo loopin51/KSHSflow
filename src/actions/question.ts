@@ -33,16 +33,14 @@ export async function createQuestion(input: CreateQuestionInput) {
       views: 0,
     });
     
-    // Handle Mentions
     const mentionRegex = /@(\w+)/g;
     const mentionedNames = input.body.match(mentionRegex)?.map(m => m.substring(1)) || [];
     
     if (mentionedNames.length > 0) {
         const mentionedUsers = await getUsersByNames(mentionedNames);
         for (const mentionedUser of mentionedUsers) {
-            // Avoid notifying the author of their own mention
             if (mentionedUser.id !== input.author.id) {
-                const message = `${input.author.name} mentioned you in a question.`;
+                const message = `${input.author.name}님이 질문에서 당신을 언급했습니다.`;
                 const link = `/questions/${questionRef.id}`;
                 await createNotification(mentionedUser.id, message, link);
             }
@@ -54,7 +52,7 @@ export async function createQuestion(input: CreateQuestionInput) {
     return { questionId: questionRef.id };
   } catch (error) {
     console.error('Error creating question:', error);
-    throw new Error('Failed to create question.');
+    throw new Error('질문을 생성하지 못했습니다.');
   }
 }
 
@@ -73,10 +71,9 @@ export async function createAnswer(input: CreateAnswerInput) {
         await runTransaction(db, async (transaction) => {
             const questionDoc = await transaction.get(questionRef);
             if (!questionDoc.exists()) {
-                throw new Error("Question does not exist!");
+                throw new Error("질문이 존재하지 않습니다!");
             }
 
-            // Add the new answer
             const answerData = {
                 body: input.content,
                 author: {
@@ -90,7 +87,6 @@ export async function createAnswer(input: CreateAnswerInput) {
             };
             transaction.set(doc(answersColRef), answerData);
 
-            // Update the answersCount on the question
             const newAnswersCount = (questionDoc.data().answersCount || 0) + 1;
             transaction.update(questionRef, { answersCount: newAnswersCount });
         });
@@ -98,6 +94,6 @@ export async function createAnswer(input: CreateAnswerInput) {
         revalidatePath(`/questions/${input.questionId}`);
     } catch (error) {
         console.error('Error creating answer:', error);
-        throw new Error('Failed to create answer.');
+        throw new Error('답변을 생성하지 못했습니다.');
     }
 }

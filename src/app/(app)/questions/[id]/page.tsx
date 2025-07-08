@@ -23,7 +23,7 @@ export default async function QuestionDetailPage({ params }: { params: { id: str
       <div className="mb-4">
         <h1 className="text-2xl md:text-3xl font-bold">{question.title}</h1>
         <div className="text-sm text-muted-foreground mt-1">
-          Asked {question.createdAt}
+          {question.createdAt}에 질문됨
         </div>
       </div>
       <Separator />
@@ -38,7 +38,7 @@ export default async function QuestionDetailPage({ params }: { params: { id: str
             ))}
           </div>
           <div className="flex justify-end">
-            <UserCard user={question.author} timestamp={question.createdAt} action="asked" />
+            <UserCard user={question.author} timestamp={question.createdAt} action="질문함" />
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@ export default async function QuestionDetailPage({ params }: { params: { id: str
       
       <div className="my-6">
         {question.answersCount > 0 && (
-           <h2 className="text-xl font-bold mb-4">{question.answersCount} {question.answersCount === 1 ? 'Answer' : 'Answers'}</h2>
+           <h2 className="text-xl font-bold mb-4">{question.answersCount}개의 답변</h2>
         )}
         
         {acceptedAnswer && <Answer answer={acceptedAnswer} />}
@@ -57,7 +57,7 @@ export default async function QuestionDetailPage({ params }: { params: { id: str
       <Separator />
 
       <div className="my-6">
-        <h2 className="text-xl font-bold mb-4">Your Answer</h2>
+        <h2 className="text-xl font-bold mb-4">내 답변</h2>
         <AnswerForm questionId={question.id} />
       </div>
     </div>

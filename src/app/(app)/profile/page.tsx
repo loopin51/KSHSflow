@@ -72,13 +72,13 @@ export default function ProfilePage() {
       await updateUser({ name, bio });
       setIsEditing(false);
       toast({
-        title: 'Profile Updated',
-        description: 'Your changes have been saved.',
+        title: '프로필 업데이트됨',
+        description: '변경사항이 저장되었습니다.',
       });
     } else {
       toast({
-        title: 'Error',
-        description: 'Name cannot be empty.',
+        title: '오류',
+        description: '이름은 비워둘 수 없습니다.',
         variant: 'destructive',
       });
     }
@@ -104,50 +104,50 @@ export default function ProfilePage() {
                 ) : (
                   <CardTitle className="text-3xl">{user.name}</CardTitle>
                 )}
-                <p className="text-muted-foreground">Joined recently</p>
+                <p className="text-muted-foreground">최근 가입</p>
             </div>
             <div className="flex items-center gap-2">
                 {isEditing ? (
                   <>
-                    <Button onClick={handleSave}>Save</Button>
-                    <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                    <Button onClick={handleSave}>저장</Button>
+                    <Button variant="outline" onClick={() => setIsEditing(false)}>취소</Button>
                   </>
                 ) : (
-                  <Button variant="outline" onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>프로필 수정</Button>
                 )}
-                <Button variant="outline" onClick={logout}>Log Out</Button>
+                <Button variant="outline" onClick={logout}>로그아웃</Button>
             </div>
         </CardHeader>
         <CardContent>
             <div className="mt-4">
-                <h3 className="text-xl font-bold mb-2">About</h3>
+                <h3 className="text-xl font-bold mb-2">소개</h3>
                  {isEditing ? (
                     <Textarea 
                         value={bio} 
                         onChange={(e) => setBio(e.target.value)} 
-                        placeholder="Tell us a little about yourself..."
+                        placeholder="자신에 대해 간단히 소개해 주세요..."
                         className="min-h-[100px]"
                     />
                 ) : (
-                    <p className="text-muted-foreground whitespace-pre-wrap">{bio || 'No bio yet.'}</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{bio || '아직 소개가 없습니다.'}</p>
                 )}
             </div>
 
             <div className="mt-6">
-                <h3 className="text-xl font-bold mb-2">Stats</h3>
+                <h3 className="text-xl font-bold mb-2">통계</h3>
                 <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="p-4 bg-secondary rounded-lg">
                         <p className="text-2xl font-bold">{userQuestions.length}</p>
-                        <p className="text-sm text-muted-foreground">Questions</p>
+                        <p className="text-sm text-muted-foreground">질문</p>
                     </div>
                     <div className="p-4 bg-secondary rounded-lg">
                         <p className="text-2xl font-bold">{userAnswers.length}</p>
-                        <p className="text-sm text-muted-foreground">Answers</p>
+                        <p className="text-sm text-muted-foreground">답변</p>
                     </div>
                 </div>
             </div>
              <div className="mt-6">
-                <h3 className="text-xl font-bold mb-4">Questions Asked</h3>
+                <h3 className="text-xl font-bold mb-4">작성한 질문</h3>
                 {isContributionsLoading ? <Loader2 className="animate-spin" /> : userQuestions.length > 0 ? (
                     <ul className="space-y-2">
                         {userQuestions.map(q => (
@@ -157,7 +157,7 @@ export default function ProfilePage() {
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-muted-foreground">No questions asked yet.</p>
+                    <p className="text-muted-foreground">아직 작성한 질문이 없습니다.</p>
                 )}
             </div>
         </CardContent>

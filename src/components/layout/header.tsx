@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -46,13 +45,13 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <MessageCircleQuestion className="h-6 w-6 text-primary" />
-          <span className="hidden font-bold sm:inline-block">CampusOverflow</span>
+          <span className="hidden font-bold sm:inline-block">캠퍼스오버플로우</span>
         </Link>
         <div className="flex-1 px-4 sm:px-8 lg:px-16">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search questions..."
+              placeholder="질문 검색..."
               className="w-full rounded-full pl-10"
             />
           </div>
@@ -67,11 +66,11 @@ export function Header() {
                                 {notifications.some(n => !n.read) && (
                                     <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-card" />
                                 )}
-                                <span className="sr-only">Notifications</span>
+                                <span className="sr-only">알림</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-80">
-                            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                            <DropdownMenuLabel>알림</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {notifications.length > 0 ? notifications.map(n => (
                                 <DropdownMenuItem key={n.id} onClick={() => handleNotificationClick(n)} className="flex items-start gap-2 cursor-pointer">
@@ -81,7 +80,7 @@ export function Header() {
                                     <p className="text-sm text-muted-foreground whitespace-normal">{n.message}</p>
                                 </DropdownMenuItem>
                             )) : (
-                                <p className="p-2 text-sm text-center text-muted-foreground">No new notifications</p>
+                                <p className="p-2 text-sm text-center text-muted-foreground">새 알림이 없습니다</p>
                             )}
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -103,15 +102,15 @@ export function Header() {
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => router.push('/profile')}>
-                            Profile
+                            프로필
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push('/ask')}>
-                            Ask Question
+                            질문하기
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={logout}>
                             <LogOut className="mr-2 h-4 w-4" />
-                            <span>Log out</span>
+                            <span>로그아웃</span>
                         </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -119,10 +118,10 @@ export function Header() {
             ) : (
                 <>
                     <Button variant="ghost" asChild>
-                    <Link href="/login">Log In</Link>
+                    <Link href="/login">로그인</Link>
                     </Button>
                     <Button asChild>
-                    <Link href="/signup">Sign Up</Link>
+                    <Link href="/signup">가입하기</Link>
                     </Button>
                 </>
             )}

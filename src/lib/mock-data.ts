@@ -1,6 +1,7 @@
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, Timestamp } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 export type User = {
   id: string;
@@ -46,8 +47,8 @@ export type Question = {
 const docToQuestion = (doc: any): Question => {
   const data = doc.data();
   const createdAt = data.createdAt instanceof Timestamp 
-    ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true }) 
-    : 'some time ago';
+    ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true, locale: ko }) 
+    : '시간 정보 없음';
   
   return {
     id: doc.id,
@@ -66,7 +67,6 @@ export const getQuestions = async (): Promise<Question[]> => {
     return questionList;
   } catch (error) {
     console.error("Error fetching questions:", error);
-    // In case of error (e.g., emulators not running), return empty array
     return [];
   }
 };
@@ -89,8 +89,8 @@ export const getQuestionById = async (id: string): Promise<Question | undefined>
     question.answers = answersSnapshot.docs.map(doc => {
       const data = doc.data();
       const createdAt = data.createdAt instanceof Timestamp 
-        ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true })
-        : 'some time ago';
+        ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true, locale: ko })
+        : '시간 정보 없음';
       return { id: doc.id, ...data, createdAt } as Answer;
     });
 

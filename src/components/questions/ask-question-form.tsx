@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useTransition, useState, useCallback } from 'react';
@@ -22,9 +21,9 @@ import { debounce } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 const questionSchema = z.object({
-  title: z.string().min(15, { message: 'Title must be at least 15 characters.' }).max(130),
-  body: z.string().min(30, { message: 'Body must be at least 30 characters.' }),
-  tags: z.string().min(1, { message: 'Please enter at least one tag.' }),
+  title: z.string().min(15, { message: '제목은 15자 이상이어야 합니다.' }).max(130),
+  body: z.string().min(30, { message: '본문은 30자 이상이어야 합니다.' }),
+  tags: z.string().min(1, { message: '태그를 하나 이상 입력해주세요.' }),
 });
 
 export function AskQuestionForm() {
@@ -69,7 +68,7 @@ export function AskQuestionForm() {
   const handleSuggestTags = async () => {
       const { title, body } = form.getValues();
       if (!title && !body) {
-          toast({ title: 'Please provide a title or body first.', variant: 'destructive' });
+          toast({ title: '먼저 제목이나 본문을 입력해주세요.', variant: 'destructive' });
           return;
       }
       setIsSuggestingTags(true);
@@ -77,7 +76,7 @@ export function AskQuestionForm() {
         const result = await suggestTags({ question: `${title}\n${body}`});
         setSuggestedTags(result.tags);
       } catch (error) {
-          toast({ title: 'Could not suggest tags.', variant: 'destructive' });
+          toast({ title: '태그를 추천할 수 없습니다.', variant: 'destructive' });
       } finally {
           setIsSuggestingTags(false);
       }
@@ -86,7 +85,7 @@ export function AskQuestionForm() {
   const handleRecommendUsers = async () => {
     const { body } = form.getValues();
     if (!body) {
-        toast({ title: 'Please provide a question body first.', variant: 'destructive' });
+        toast({ title: '먼저 질문 본문을 입력해주세요.', variant: 'destructive' });
         return;
     }
     setIsRecommendingUsers(true);
@@ -94,7 +93,7 @@ export function AskQuestionForm() {
         const result = await recommendUsers({ question: body });
         setRecommendedUsers(result.recommendedUsernames);
     } catch (error) {
-        toast({ title: 'Could not recommend users.', variant: 'destructive' });
+        toast({ title: '사용자를 추천할 수 없습니다.', variant: 'destructive' });
     } finally {
         setIsRecommendingUsers(false);
     }
@@ -115,16 +114,16 @@ export function AskQuestionForm() {
 
   function onSubmit(values: z.infer<typeof questionSchema>) {
     if (!user) {
-      toast({ title: 'Error', description: 'You must be logged in to ask a question.', variant: 'destructive' });
+      toast({ title: '오류', description: '질문을 하려면 로그인해야 합니다.', variant: 'destructive' });
       return;
     }
     startTransition(async () => {
       try {
         await createQuestion({ ...values, author: user });
-        toast({ title: "Question Posted!", description: "Your question has been successfully posted." });
+        toast({ title: "질문 등록됨!", description: "질문이 성공적으로 등록되었습니다." });
         router.push('/');
       } catch (error) {
-        toast({ title: "Error", description: "Failed to post your question. Please try again.", variant: "destructive" });
+        toast({ title: "오류", description: "질문을 등록하지 못했습니다. 다시 시도해주세요.", variant: "destructive" });
       }
     });
   }
@@ -134,8 +133,8 @@ export function AskQuestionForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Title</CardTitle>
-            <CardDescription>Be specific and imagine you’re asking a question to another person.</CardDescription>
+            <CardTitle>제목</CardTitle>
+            <CardDescription>다른 사람에게 질문하는 것처럼 구체적으로 작성해주세요.</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
@@ -144,7 +143,7 @@ export function AskQuestionForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="e.g. How does a blockchain work?" {...field} />
+                    <Input placeholder="예: 블록체인은 어떻게 작동하나요?" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,8 +154,8 @@ export function AskQuestionForm() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Body</CardTitle>
-            <CardDescription>Include all the information someone would need to answer your question. Use @ to mention users.</CardDescription>
+            <CardTitle>본문</CardTitle>
+            <CardDescription>다른 사람이 답변하는 데 필요한 모든 정보를 포함해주세요. @를 사용하여 사용자를 언급할 수 있습니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
@@ -166,7 +165,7 @@ export function AskQuestionForm() {
                 <FormItem>
                   <FormControl>
                     <Textarea
-                      placeholder="Type your question details here..."
+                      placeholder="질문 내용을 여기에 입력하세요..."
                       rows={10}
                       {...field}
                       onChange={(e) => {
@@ -186,17 +185,17 @@ export function AskQuestionForm() {
             <CardHeader>
                 <div className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    <h3 className="text-lg font-semibold">User Mentions</h3>
+                    <h3 className="text-lg font-semibold">사용자 언급</h3>
                     {isDetectingMentions && <Loader2 className="h-4 w-4 animate-spin" />}
                 </div>
               <CardDescription>
-                Users mentioned with @ will be notified. Use the button below to get AI recommendations.
+                @로 언급된 사용자에게 알림이 갑니다. 아래 버튼을 사용하여 AI 추천을 받아보세요.
               </CardDescription>
             </CardHeader>
             <CardContent>
                 {mentionedUsers.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
-                        <FormLabel className="w-full text-sm">Detected Mentions:</FormLabel>
+                        <FormLabel className="w-full text-sm">감지된 언급:</FormLabel>
                         {mentionedUsers.map((user) => (
                             <Badge key={user} variant="secondary">@{user}</Badge>
                         ))}
@@ -204,10 +203,10 @@ export function AskQuestionForm() {
                 )}
                 {isRecommendingUsers ? <Loader2 className="h-5 w-5 animate-spin"/> : recommendedUsers.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                        <FormLabel className="w-full text-sm">Recommendations:</FormLabel>
+                        <FormLabel className="w-full text-sm">추천:</FormLabel>
                         {recommendedUsers.map((user) => (
                            <Button key={user} type="button" size="sm" variant="outline" onClick={() => addMention(user)}>
-                               Add @{user}
+                               @{user} 추가
                            </Button>
                         ))}
                     </div>
@@ -216,7 +215,7 @@ export function AskQuestionForm() {
             <CardFooter>
                  <Button type="button" variant="outline" onClick={handleRecommendUsers} disabled={isRecommendingUsers}>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Find User to Mention
+                    언급할 사용자 찾기
                 </Button>
             </CardFooter>
           </Card>
@@ -224,8 +223,8 @@ export function AskQuestionForm() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Tags</CardTitle>
-            <CardDescription>Add up to 5 tags to describe what your question is about. Separate tags with a space.</CardDescription>
+            <CardTitle>태그</CardTitle>
+            <CardDescription>질문에 대해 설명하는 태그를 최대 5개까지 추가하세요. 태그는 공백으로 구분합니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
@@ -234,7 +233,7 @@ export function AskQuestionForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="e.g. science technology career" {...field} />
+                    <Input placeholder="예: 과학 기술 진로" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -253,14 +252,14 @@ export function AskQuestionForm() {
           <CardFooter>
              <Button type="button" variant="outline" onClick={handleSuggestTags} disabled={isSuggestingTags}>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Suggest Tags
+                태그 추천받기
             </Button>
           </CardFooter>
         </Card>
 
         <Button type="submit" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Post Your Question
+            질문 등록하기
         </Button>
       </form>
     </Form>

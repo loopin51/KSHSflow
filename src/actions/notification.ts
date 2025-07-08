@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase';
 import type { Notification } from '@/lib/mock-data';
 import { collection, query, where, getDocs, orderBy, Timestamp, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
+import { ko } from 'date-fns/locale';
 import { revalidatePath } from 'next/cache';
 
 export async function createNotification(userId: string, message: string, link: string) {
@@ -28,8 +29,8 @@ export async function getNotificationsForUser(userId: string): Promise<Notificat
     return snapshot.docs.map(docSnap => {
         const data = docSnap.data();
         const createdAt = data.createdAt instanceof Timestamp
-            ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true })
-            : 'some time ago';
+            ? formatDistanceToNow(data.createdAt.toDate(), { addSuffix: true, locale: ko })
+            : '시간 정보 없음';
         return {
             id: docSnap.id,
             ...data,
@@ -41,5 +42,5 @@ export async function getNotificationsForUser(userId: string): Promise<Notificat
 export async function markNotificationAsRead(notificationId: string) {
     const notifRef = doc(db, 'notifications', notificationId);
     await updateDoc(notifRef, { read: true });
-    revalidatePath('/profile'); // Or wherever notifications are displayed
+    revalidatePath('/profile');
 }

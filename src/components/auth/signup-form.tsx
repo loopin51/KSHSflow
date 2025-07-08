@@ -12,9 +12,9 @@ import { useAuth } from '@/context/auth-context';
 import { useState } from 'react';
 
 const signupSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  name: z.string().min(2, { message: '이름은 2자 이상이어야 합니다.' }),
   email: z.string().email(),
-  password: z.string().min(8, { message: 'Password must be at least 8 characters.' }),
+  password: z.string().min(8, { message: '비밀번호는 8자 이상이어야 합니다.' }),
 });
 
 export function SignupForm() {
@@ -37,10 +37,10 @@ export function SignupForm() {
     const success = await signup(values.name, values.email);
     setIsLoading(false);
     if (success) {
-      toast({ title: 'Account Created', description: 'Welcome to CampusOverflow!' });
+      toast({ title: '계정 생성됨', description: '캠퍼스오버플로우에 오신 것을 환영합니다!' });
       router.push('/');
     } else {
-      toast({ title: 'Signup Failed', description: 'A user with this email may already exist.', variant: 'destructive' });
+      toast({ title: '가입 실패', description: '이 이메일을 사용하는 사용자가 이미 존재할 수 있습니다.', variant: 'destructive' });
     }
   }
 
@@ -52,9 +52,9 @@ export function SignupForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>이름</FormLabel>
               <FormControl>
-                <Input placeholder="Your Name" {...field} />
+                <Input placeholder="이름" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -65,7 +65,7 @@ export function SignupForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>이메일</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="m@example.com" {...field} />
               </FormControl>
@@ -78,7 +78,7 @@ export function SignupForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>비밀번호</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -87,7 +87,7 @@ export function SignupForm() {
           )}
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {isLoading ? '계정 생성 중...' : '계정 만들기'}
         </Button>
       </form>
     </Form>
