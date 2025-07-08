@@ -1,5 +1,4 @@
-import { SignUp } from "@clerk/nextjs";
-
-export default function Page() {
-  return <SignUp />;
+// This page is not used in the current authentication setup.
+export default function SignUpPage() {
+  return null;
 }
